@@ -18,6 +18,8 @@ pragma solidity >=0.7.0 <0.9.0;
      );
      event ConfirmTxn(address indexed owner, uint indexed txIndex);
      event ExecuteTxn(address indexed owner, uint indexed txIndex);
+     event RevokeTxn(address indexed owner, uint indexed txIndex);
+     event Deposit(address indexed owner, uint value, uint balances);
 
 
 
@@ -29,9 +31,10 @@ pragma solidity >=0.7.0 <0.9.0;
          uint value;
          bytes data;
          bool executed;
-         mapping(address => bool) isConfirmed;
          uint numConfirmations;
      }
+
+     mapping(uint => mapping(address => bool)) public isConfirmed;
      Txn[] public txns;
 
 
@@ -50,6 +53,14 @@ pragma solidity >=0.7.0 <0.9.0;
          numOfConfirmationsRequired = _numOfConirmationsRequired;
      }
 
+     fallback () payable external {
+         emit Deposit(msg.sender, msg.value, address(this).balance);
+     }
+    //  To easily deposit from remix.
+     function deposit() payable external {
+         emit Deposit(msg.sender, msg.value, address(this).balance);
+     }
+
 
 
      modifier onlyOwner() {
@@ -65,7 +76,7 @@ pragma solidity >=0.7.0 <0.9.0;
          _;
      }
      modifier notConfirmed(uint _txIndex) {
-         require(!txns[_txIndex].isConfirmed[msg.sender], "Txn already confirmed");
+         require(!isConfirmed[_txIndex][msg.sender], "Txn already confirmed");
          _;
      }
 
@@ -86,7 +97,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
      function confirmTxn(uint _txIndex) public onlyOwner txExists(_txIndex) notExecuted(_txIndex) notConfirmed(_txIndex) {
          Txn storage transaction = txns[_txIndex];
-         transaction.isConfirmed[msg.sender] = true;
+         isConfirmed[_txIndex][msg.sender] = true;
          transaction.numConfirmations += 1;
 
          emit ConfirmTxn(msg.sender, _txIndex);
@@ -100,9 +111,19 @@ pragma solidity >=0.7.0 <0.9.0;
          transaction.executed = true;
 
         // Execute txn
-         (bool success, ) = transaction.to.call.value(transaction.value)(transaction.data);
+         (bool success, ) = transaction.to.call{value :transaction.value }(transaction.data);
          require(success, "Txn failed");
 
          emit ExecuteTxn(msg.sender, _txIndex);
+     }
+
+     function revokeTxn(uint _txIndex) public onlyOwner txExists(_txIndex) notExecuted(_txIndex) {
+
+         Txn storage transaction = txns[_txIndex];
+         require(isConfirmed[_txIndex][msg.sender], "txn not confirmed yet.");
+         transaction.numConfirmations -= 1;
+         isConfirmed[_txIndex][msg.sender] = false;
+
+         emit RevokeTxn(msg.sender, _txIndex);
      }
  }
