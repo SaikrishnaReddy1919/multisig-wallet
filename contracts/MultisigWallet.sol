@@ -1,11 +1,10 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.7.0 <0.9.0;
 
 /** 
  * @title MultisigWallet
  * @dev Implements multi signature wallet. 
- * @dev will explain the usage and description of every variable and function after completing full code
  */
 
  contract MultisigWallet {
@@ -17,6 +16,9 @@ pragma solidity >=0.7.0 <0.9.0;
          uint value,
          bytes data
      );
+     event ConfirmTxn(address indexed owner, uint indexed txIndex);
+
+
 
      address[] public owners;
      mapping(address => bool) public isOwner;
@@ -31,6 +33,8 @@ pragma solidity >=0.7.0 <0.9.0;
      }
      Txn[] public txns;
 
+
+
      constructor(address[] memory _owners, uint _numOfConirmationsRequired) {
          require(_owners.length > 0, "Owners required");
          require(_numOfConirmationsRequired > 0 && _numOfConirmationsRequired <= _owners.length, "Invalid number of required confirmations");
@@ -44,20 +48,46 @@ pragma solidity >=0.7.0 <0.9.0;
          }
          numOfConfirmationsRequired = _numOfConirmationsRequired;
      }
+
+
+
      modifier onlyOwner() {
          require(isOwner[msg.sender], "Only owner can call this");
          _;
      }
+     modifier txExists(uint _txIndex) {
+         require(_txIndex < txns.length, "txn does not exist");
+         _;
+     }
+     modifier notExecuted(uint _txIndex) {
+         require(!txns[_txIndex].executed, "Txn already executed");
+         _;
+     }
+     modifier notConfirmed(uint _txIndex) {
+         require(!txns[_txIndex].isConfirmed[msg.sender], "Txn already confirmed");
+         _;
+     }
+
+
+     
      function submitTxn(address _to, uint _value, bytes memory _data) public onlyOwner {
          uint txIndex = txns.length;
          txns.push(Txn({
              to : _to,
              value : _value,
-             data : _data, 
+             data : _data,
              executed : false,
              numConfirmations : 0
          }));
 
          emit SubmitTxn(msg.sender, _to, txIndex, _value, _data);
+     }
+
+     function confirmTxn(uint _txIndex) public onlyOwner txExists(_txIndex) notExecuted(_txIndex) notConfirmed(_txIndex) {
+         Txn storage transaction = txns[_txIndex];
+         transaction.isConfirmed[msg.sender] = true;
+         transaction.numConfirmations += 1;
+
+         emit ConfirmTxn(msg.sender, _txIndex);
      }
  }
