@@ -17,6 +17,7 @@ pragma solidity >=0.7.0 <0.9.0;
          bytes data
      );
      event ConfirmTxn(address indexed owner, uint indexed txIndex);
+     event ExecuteTxn(address indexed owner, uint indexed txIndex);
 
 
 
@@ -69,7 +70,7 @@ pragma solidity >=0.7.0 <0.9.0;
      }
 
 
-     
+
      function submitTxn(address _to, uint _value, bytes memory _data) public onlyOwner {
          uint txIndex = txns.length;
          txns.push(Txn({
@@ -89,5 +90,19 @@ pragma solidity >=0.7.0 <0.9.0;
          transaction.numConfirmations += 1;
 
          emit ConfirmTxn(msg.sender, _txIndex);
+     }
+
+     function executeTxn(uint _txIndex) public onlyOwner 
+     txExists(_txIndex)
+     notExecuted(_txIndex) {
+         Txn storage transaction = txns[_txIndex];
+         require(transaction.numConfirmations >= numOfConfirmationsRequired, "Cannot execute txn, need more confirmations");
+         transaction.executed = true;
+
+        // Execute txn
+         (bool success, ) = transaction.to.call.value(transaction.value)(transaction.data);
+         require(success, "Txn failed");
+
+         emit ExecuteTxn(msg.sender, _txIndex);
      }
  }
