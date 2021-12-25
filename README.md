@@ -15,3 +15,9 @@ This repo will be about coding the multisig Wallet and will also develop fronten
 - If both Bob and Carol rejects the txn then the txn by Alice for withdrawing 1BTC will be revoked. Because the wallet here is **2 out of 3 multisig** wallet. So atleast 2 approvals are required including alice approval.
 
 Everything about owners setting, number of approvals required, revoking transaction etc.. all will be done in a **Smart Contract**.
+
+
+##### Follow me on [![twitter][1.1]][1]
+
+[1.1]: https://i.imgur.com/iYkheW1.png
+[1]: https://twitter.com/blockchain_dev2
