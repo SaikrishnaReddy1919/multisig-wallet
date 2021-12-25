@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 
 pragma solidity >=0.7.0 <0.9.0;
 
@@ -44,5 +44,20 @@ pragma solidity >=0.7.0 <0.9.0;
          }
          numOfConfirmationsRequired = _numOfConirmationsRequired;
      }
-     function submitTxn() public {}
+     modifier onlyOwner() {
+         require(isOwner[msg.sender], "Only owner can call this");
+         _;
+     }
+     function submitTxn(address _to, uint _value, bytes memory _data) public onlyOwner {
+         uint txIndex = txns.length;
+         txns.push(Txn({
+             to : _to,
+             value : _value,
+             data : _data, 
+             executed : false,
+             numConfirmations : 0
+         }));
+
+         emit SubmitTxn(msg.sender, _to, txIndex, _value, _data);
+     }
  }
