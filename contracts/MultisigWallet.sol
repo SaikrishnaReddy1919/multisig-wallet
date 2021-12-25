@@ -53,7 +53,7 @@ pragma solidity >=0.7.0 <0.9.0;
          numOfConfirmationsRequired = _numOfConirmationsRequired;
      }
 
-     fallback () payable external {
+     receive () payable external {
          emit Deposit(msg.sender, msg.value, address(this).balance);
      }
     //  To easily deposit from remix.
@@ -126,4 +126,25 @@ pragma solidity >=0.7.0 <0.9.0;
 
          emit RevokeTxn(msg.sender, _txIndex);
      }
+
+
+    //  Helper functions
+    function getOwners() public view returns (address[] memory) {
+        return owners;
+    }
+
+    function getTxnCount() public view returns (uint) {
+        return txns.length;
+    }
+
+    function getTxn(uint _txIndex) public view returns (address to, uint value, bytes memory data, bool executed, uint numConfirmations){
+        Txn storage transaction = txns[_txIndex];
+        return (
+            transaction.to,
+            transaction.value,
+            transaction.data,
+            transaction.executed,
+            transaction.numConfirmations
+        );
+    }
  }
