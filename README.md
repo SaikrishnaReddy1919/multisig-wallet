@@ -17,6 +17,8 @@ This repo will be about coding the multisig Wallet and will also develop fronten
 Everything about owners setting, number of approvals required, revoking transaction etc.. all will be done in a **Smart Contract**.
 
 
+Find the explanation for the smart contract at [devto/SaikrishnaReddy](https://dev.to/saikrishnareddy1919/multisig-wallet-smart-contract-explanation-2eek)
+
 ##### Follow me on [![twitter][1.1]][1]
 
 [1.1]: https://i.imgur.com/iYkheW1.png
